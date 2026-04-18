@@ -1,7 +1,11 @@
-node_modules/
-.next/
-dist/
-.env*
-*.log
-backend/app
+PRD.md
+TDD.md
+TDD-old.md
+code-standards.md
+task.md
+context.md
+# Wait, I don't see context.md in the ls, but I'll add it.
+# Also exclude migration files if they shouldn't be here (usually they should, but docs say no docs)
+*.md
+!README.md
 
