@@ -25,4 +25,11 @@ needs `.env.local` with:
 - `NEXT_PUBLIC_FIREBASE_APP_ID`
 
 ---
+## 🧪 local testing (no firebase)
+To work without real Firebase keys, set these in your environment:
+- **Backend**: `DUMMY_AUTH=true`
+- **Frontend**: `NEXT_PUBLIC_AUTH_BYPASS=true`
+*(This will inject a dummy user `local-user-123` and bypass all token checks)*
+
+---
 standard: no comments, flat-ish structure, print errors.
