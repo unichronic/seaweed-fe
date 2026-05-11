@@ -1,20 +1,25 @@
-# recruit platform
+# seaweed app
 
 ## backend
+
 ```bash
 cd backend
 go run cmd/app/main.go
 ```
+
 needs `.env` with:
 - `DB_ADDR` (neon postgres dsn)
 - `FIREBASE_SERVICE_ACCOUNT_PATH` (path to json)
 - `S3_SUBMISSIONS_BUCKET` (aws bucket name)
+- `JUDGE0_BASE_URL`
 
 ## frontend
+
 ```bash
 cd frontend
 npm run dev
 ```
+
 needs `.env.local` with:
 - `NEXT_PUBLIC_API_URL` (usually http://localhost:8080)
 - `NEXT_PUBLIC_FIREBASE_API_KEY`
@@ -24,12 +29,10 @@ needs `.env.local` with:
 - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
 - `NEXT_PUBLIC_FIREBASE_APP_ID`
 
----
-## 🧪 local testing (no firebase)
-To work without real Firebase keys, set these in your environment:
-- **Backend**: `DUMMY_AUTH=true`
-- **Frontend**: `NEXT_PUBLIC_AUTH_BYPASS=true`
-*(This will inject a dummy user `local-user-123` and bypass all token checks)*
+## local testing
 
----
-standard: no comments, flat-ish structure, print errors.
+Set `DUMMY_AUTH=true` for backend and `NEXT_PUBLIC_AUTH_BYPASS=true` for frontend.
+
+## kubernetes
+
+Kubernetes manifests live in `seaweed-infra`.

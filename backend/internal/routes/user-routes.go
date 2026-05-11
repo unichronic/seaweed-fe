@@ -13,4 +13,5 @@ func AddUserRoutes(e *echo.Echo, authClient *auth.Client, ctrl *controllers.User
 
 	g.POST("/create", ctrl.CreateUser)
 	g.GET("/profile", ctrl.GetProfile)
+	g.POST("/profile", ctrl.UpdateProfile)
 }

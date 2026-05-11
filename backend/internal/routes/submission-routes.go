@@ -12,4 +12,7 @@ func AddSubmissionRoutes(e *echo.Echo, authClient *auth.Client, ctrl *controller
 	g.Use(middleware.RequireFirebaseAuth(authClient))
 
 	g.POST("/submit", ctrl.Submit)
+	g.GET("/:id/status", ctrl.Status)
+	g.GET("/:id/details", ctrl.Details)
+	g.GET("/list", ctrl.List)
 }

@@ -10,6 +10,9 @@ import (
 func RequireAdminRole(adminStore *stores.AdminStore) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			if dummyAuthEnabled() {
+				return next(c)
+			}
 			userId := c.Get("userId").(string)
 			isAdmin, err := adminStore.IsAdmin(c.Request().Context(), userId)
 			if err != nil || !isAdmin {

@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"os"
 	"strings"
 
 	"firebase.google.com/go/auth"
@@ -12,12 +13,17 @@ import (
 func RequireFirebaseAuth(authClient *auth.Client) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			if dummyAuthEnabled() {
+				c.Set("userId", "local-user-123")
+				return next(c)
+			}
+
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
 				return echo.NewHTTPError(http.StatusUnauthorized, "Missing Authorization Header")
 			}
 
-			idToken := strings.TrimSpace(strings.Replace(authHeader, "Bearer", "", 1))
+			idToken := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
 			token, err := authClient.VerifyIDToken(context.Background(), idToken)
 			if err != nil {
 				return echo.NewHTTPError(http.StatusUnauthorized, "Invalid ID Token")
@@ -33,12 +39,17 @@ func RequireFirebaseAuth(authClient *auth.Client) echo.MiddlewareFunc {
 func OptionalFirebaseAuth(authClient *auth.Client) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			if dummyAuthEnabled() {
+				c.Set("userId", "local-user-123")
+				return next(c)
+			}
+
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {
 				return next(c)
 			}
 
-			idToken := strings.TrimSpace(strings.Replace(authHeader, "Bearer", "", 1))
+			idToken := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
 			token, err := authClient.VerifyIDToken(context.Background(), idToken)
 			if err == nil {
 				c.Set("user", token)
@@ -47,4 +58,8 @@ func OptionalFirebaseAuth(authClient *auth.Client) echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+func dummyAuthEnabled() bool {
+	return os.Getenv("DUMMY_AUTH") == "true" && os.Getenv("STAGE") != "prod"
 }

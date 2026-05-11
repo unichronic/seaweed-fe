@@ -1,10 +1,10 @@
--- 000001_init.up.sql
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE users (
-    id             TEXT PRIMARY KEY,        -- Firebase UID
+    id             TEXT PRIMARY KEY,
     name           TEXT NOT NULL,
 	email          TEXT NOT NULL UNIQUE,
-    usn            TEXT NOT NULL UNIQUE,    -- University serial number
+    usn            TEXT NOT NULL UNIQUE,
     mobile_number  TEXT,
     joining_year   INT NOT NULL,
     department     TEXT NOT NULL
@@ -16,14 +16,17 @@ CREATE TABLE admin (
 );
 
 CREATE TABLE contests (
-    id                      TEXT PRIMARY KEY,   -- UUID
+    id                      TEXT PRIMARY KEY,
     name                    TEXT NOT NULL,
     description             TEXT,
-    eligible_to             TEXT,               -- e.g. '2,3' for 2nd and 3rd year only
+    eligible_to             TEXT,
+    registration_status     TEXT NOT NULL DEFAULT 'open',
     registration_start_time BIGINT NOT NULL,
     registration_end_time   BIGINT NOT NULL,
     start_time              BIGINT NOT NULL,
-    end_time                BIGINT NOT NULL
+    end_time                BIGINT NOT NULL,
+    finalized               BOOLEAN NOT NULL DEFAULT FALSE,
+    CHECK (registration_status IN ('open', 'closed', 'invite-only'))
 );
 
 CREATE TABLE contest_registrations (
@@ -34,11 +37,12 @@ CREATE TABLE contest_registrations (
 );
 
 CREATE TABLE problems (
-    id          TEXT PRIMARY KEY,   -- UUID
+    id          TEXT PRIMARY KEY,
     contest_id  TEXT NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
     name        TEXT NOT NULL,
-    description TEXT,               -- Markdown + LaTeX source stored inline
-    score       INT NOT NULL
+    description TEXT,
+    score       INT NOT NULL,
+    test_cases  JSONB NOT NULL DEFAULT '[]'::jsonb
 );
 
 CREATE TYPE submission_status AS ENUM (
@@ -47,14 +51,15 @@ CREATE TYPE submission_status AS ENUM (
 );
 
 CREATE TABLE submissions (
-    id          TEXT PRIMARY KEY,    -- ULID (sortable, time-ordered)
+    id          TEXT PRIMARY KEY,
     user_id     TEXT NOT NULL REFERENCES users(id),
     contest_id  TEXT NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
     problem_id  TEXT NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
     language    TEXT NOT NULL,
-    s3_key      TEXT NOT NULL,       -- s3://bucket/submissions/{contestId}/{userId}/{submissionId}.{ext}
+    s3_key      TEXT NOT NULL,
     status      submission_status NOT NULL DEFAULT 'pending',
-    created_at  BIGINT NOT NULL
+    created_at  BIGINT NOT NULL,
+    updated_at  BIGINT
 );
 
 CREATE TYPE test_case_status AS ENUM ('pass', 'wrong_answer', 'tle', 'mle', 'rte');
@@ -73,9 +78,11 @@ CREATE TABLE rankings (
     contest_id    TEXT NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
     user_id       TEXT NOT NULL REFERENCES users(id),
     score         INT NOT NULL DEFAULT 0,
-    hidden        BOOLEAN NOT NULL DEFAULT FALSE,       -- admin can hide from public board
-    disqualified  BOOLEAN NOT NULL DEFAULT FALSE,       -- DQ flag
-    shortlisted   BOOLEAN NOT NULL DEFAULT FALSE,       -- recruitment shortlist
+    hidden        BOOLEAN NOT NULL DEFAULT FALSE,
+    disqualified  BOOLEAN NOT NULL DEFAULT FALSE,
+    shortlisted   BOOLEAN NOT NULL DEFAULT FALSE,
+    correct_attempts   INT NOT NULL DEFAULT 0,
+    incorrect_attempts INT NOT NULL DEFAULT 0,
     PRIMARY KEY (contest_id, user_id)
 );
 
@@ -90,7 +97,9 @@ SELECT
     r.hidden,
     r.disqualified,
     r.shortlisted,
-    RANK() OVER (PARTITION BY r.contest_id ORDER BY r.score DESC) AS rank
+    r.correct_attempts,
+    r.incorrect_attempts,
+    (RANK() OVER (PARTITION BY r.contest_id ORDER BY r.score DESC))::INT AS rank
 FROM rankings r
 JOIN users u ON u.id = r.user_id
 WHERE r.disqualified = FALSE

@@ -1,0 +1,11 @@
+DROP MATERIALIZED VIEW IF EXISTS ranking_mv;
+DROP TABLE IF EXISTS rankings;
+DROP TABLE IF EXISTS test_case_results;
+DROP TYPE IF EXISTS test_case_status;
+DROP TABLE IF EXISTS submissions;
+DROP TYPE IF EXISTS submission_status;
+DROP TABLE IF EXISTS problems;
+DROP TABLE IF EXISTS contest_registrations;
+DROP TABLE IF EXISTS contests;
+DROP TABLE IF EXISTS admin;
+DROP TABLE IF EXISTS users;

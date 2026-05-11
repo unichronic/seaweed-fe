@@ -10,9 +10,11 @@ import (
 )
 
 func NewFirebaseAuth() (*auth.Client, error) {
+	if os.Getenv("DUMMY_AUTH") == "true" && os.Getenv("STAGE") != "prod" {
+		return nil, nil
+	}
 	serviceAccountPath := os.Getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
 	if serviceAccountPath == "" {
-		// Fallback to default if not provided, but usually required in prod
 		app, err := firebase.NewApp(context.Background(), nil)
 		if err != nil {
 			return nil, err

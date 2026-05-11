@@ -22,3 +22,7 @@ func (s *UserService) CreateUser(ctx context.Context, u *models.User) error {
 func (s *UserService) GetUserByID(ctx context.Context, id string) (*models.User, error) {
 	return s.store.GetByID(ctx, id)
 }
+
+func (s *UserService) UpdateProfile(ctx context.Context, id string, req *models.UpdateUserProfileRequest) (*models.User, error) {
+	return s.store.Update(ctx, id, req)
+}
