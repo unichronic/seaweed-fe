@@ -35,4 +35,12 @@ Set `DUMMY_AUTH=true` for backend and `NEXT_PUBLIC_AUTH_BYPASS=true` for fronten
 
 ## kubernetes
 
-Kubernetes manifests live in `seaweed-infra`.
+Kubernetes manifests live in `infra`, which is a separate git repo.
+
+## repos
+
+`backend` and `frontend` are committed to `seaweed-fe`.
+
+`infra` is committed to `seaweed-infra`.
+
+For Vercel, import `seaweed-fe` and set root directory to `frontend`.
